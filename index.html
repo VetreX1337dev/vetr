@@ -3,111 +3,209 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>vetrex scripts</title>
+<title>Vetrex Scripts</title>
 
 <style>
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
 }
 
 body {
-  background: black;
-  height: 100vh;
-  overflow: hidden;
-  color: white;
+    background: black;
+    overflow: hidden;
+    height: 100vh;
+    color: white;
 }
 
-/* ❄️ СНЕГ */
-.snow {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
+/* ❄ Снег */
+canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1;
 }
 
-.snow span {
-  position: absolute;
-  top: -10px;
-  color: rgba(255,255,255,0.4);
-  font-size: 10px;
-  animation: fall linear infinite;
-}
-
-@keyframes fall {
-  to {
-    transform: translateY(110vh);
-  }
-}
-
-/* 🧊 ЦЕНТР */
+/* Основной контейнер */
 .container {
-  position: relative;
-  z-index: 5;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+    position: relative;
+    z-index: 2;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
-/* 🖼️ АВАТАР */
+/* Аватарка */
 .avatar {
-  width: 160px;
-  height: 160px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #4fc3ff;
-  box-shadow: 0 0 25px #4fc3ff;
-  margin-bottom: 20px;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    border: 2px solid #00eaff;
+    box-shadow: 0 0 20px #00eaff;
+    object-fit: cover;
+    margin-bottom: 20px;
 }
 
-/* ✨ ТЕКСТ */
+/* Неоновый текст */
 .title {
-  font-size: 28px;
-  text-transform: uppercase;
-  color: white;
-  text-shadow:
-    0 0 5px #4fc3ff,
-    0 0 15px #4fc3ff,
-    0 0 30px #4fc3ff;
-  animation: glow 2s infinite alternate;
-  margin-bottom: 30px;
+    font-size: 28px;
+    color: white;
+    text-shadow:
+        0 0 5px #00eaff,
+        0 0 10px #00eaff,
+        0 0 20px #00eaff;
+    margin-bottom: 25px;
+    animation: glow 2s infinite alternate;
 }
 
 @keyframes glow {
-  from { text-shadow: 0 0 10px #4fc3ff; }
-  to { text-shadow: 0 0 30px #4fc3ff; }
+    from { text-shadow: 0 0 10px #00eaff; }
+    to { text-shadow: 0 0 25px #00eaff; }
 }
 
-/* 🔘 КНОПКИ */
+/* Кнопки */
 .btn {
-  width: 230px;
-  padding: 15px;
-  margin: 10px 0;
-  text-align: center;
-  border-radius: 14px;
-  color: white;
-  font-size: 18px;
-  text-decoration: none;
-  border: 2px solid;
-  animation: borderGlow 2s linear infinite;
+    width: 80%;
+    max-width: 300px;
+    padding: 14px;
+    margin: 10px 0;
+    text-align: center;
+    border-radius: 14px;
+    font-size: 18px;
+    color: white;
+    text-decoration: none;
+    border: 2px solid;
+    animation: borderGlow 3s infinite linear;
 }
 
 @keyframes borderGlow {
-  0% { border-color: #4fc3ff; box-shadow: 0 0 10px #4fc3ff; }
-  50% { border-color: #a855f7; box-shadow: 0 0 20px #a855f7; }
-  100% { border-color: #4fc3ff; box-shadow: 0 0 10px #4fc3ff; }
+    0% { border-color: #00eaff; box-shadow: 0 0 10px #00eaff; }
+    50% { border-color: #9b00ff; box-shadow: 0 0 15px #9b00ff; }
+    100% { border-color: #00eaff; box-shadow: 0 0 10px #00eaff; }
 }
 
-/* 🎅 ШЛЯПА */
-.santa {
-  position: fixed;
-  top: 15px;
-  right: 15px;
-  display: flex;
+/* 🎅 Новогодний блок */
+.christmas {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0;
+    animation: show 2s forwards;
+    z-index: 3;
+}
+
+@keyframes show {
+    to { opacity: 1; }
+}
+
+.hat {
+    font-size: 26px;
+}
+
+.merry {
+    font-size: 14px;
+    animation: merryGlow 1.5s infinite alternate;
+}
+
+@keyframes merryGlow {
+    from { color: red; }
+    to { color: white; }
+}
+
+/* Только мобильные */
+@media (min-width: 768px) {
+    body::before {
+        content: "Этот сайт только для мобильных устройств";
+        color: white;
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: black;
+        z-index: 999;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="snow"></canvas>
+
+<div class="christmas">
+    <div class="hat">🎅</div>
+    <div class="merry">Merry Christmas 🎁</div>
+</div>
+
+<div class="container">
+    <img src="10006787.jpe" class="avatar">
+    <div class="title">vetrex scripts</div>
+
+    <a class="btn" href="https://discord.gg/4WhFRYD4T8">Discord</a>
+    <a class="btn" href="https://www.tiktok.com/@vetrex1337.dev?_r=1&_t=ZS-92Wa8W9wwYZ">Tik Tok</a>
+    <a class="btn" href="https://www.youtube.com/@Vetrex_scripts">YouTube</a>
+</div>
+
+<script>
+/* ❄ Снег */
+const canvas = document.getElementById("snow");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let snowflakes = [];
+
+for (let i = 0; i < 120; i++) {
+    snowflakes.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.5 + 0.5,
+        d: Math.random() + 0.5
+    });
+}
+
+function drawSnow() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(255,255,255,0.6)";
+    ctx.beginPath();
+    for (let i = 0; i < snowflakes.length; i++) {
+        let f = snowflakes[i];
+        ctx.moveTo(f.x, f.y);
+        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2, true);
+    }
+    ctx.fill();
+    moveSnow();
+}
+
+function moveSnow() {
+    for (let i = 0; i < snowflakes.length; i++) {
+        let f = snowflakes[i];
+        f.y += Math.pow(f.d, 2) + 0.3;
+        if (f.y > canvas.height) {
+            snowflakes[i] = {
+                x: Math.random() * canvas.width,
+                y: 0,
+                r: f.r,
+                d: f.d
+            };
+        }
+    }
+}
+
+setInterval(drawSnow, 33);
+</script>
+
+</body>
+</html>
   align-items: center;
   opacity: 0;
   animation: santaIn 2s forwards;
