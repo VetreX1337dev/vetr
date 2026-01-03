@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Vetrex Scripts</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: black;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+  color: white;
+}
+
+/* Только мобильные */
+@media (min-width: 768px) {
+  body::before {
+    content: "Сайт доступен только на мобильных устройствах";
+    position: fixed;
+    inset: 0;
+    background: black;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+}
+
+/* Фон */
+canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+}
+
+/* Центр */
+.container {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+/* Фото — ТОЛЬКО ОБВОДКА */
+.avatar-border {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  padding: 4px;
+  background: linear-gradient(270deg, #00e5ff, #2979ff, #00e5ff);
+  background-size: 400% 400%;
+  animation: neon 6s linear infinite;
+}
+
+.avatar-border img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: transparent;
+}
+
+/* Текст */
+.title {
+  font-size: 26px;
+  text-shadow:
+    0 0 5px #00e5ff,
+    0 0 15px #00e5ff,
+    0 0 30px #2979ff;
+  animation: glow 2.5s ease-in-out infinite alternate;
+}
+
+/* Кнопки */
+.buttons {
+  width: 85%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.btn {
+  position: relative;
+  padding: 14px;
+  text-align: center;
+  border-radius: 18px;
+  text-decoration: none;
+  color: white;
+  font-size: 18px;
+  background: transparent; /* НЕТ ФОНА */
+  opacity: 0;
+  transform: translateY(25px);
+  animation: fadeUp 1s forwards;
+}
+
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  padding: 2px;
+  background: linear-gradient(270deg, #00e5ff, #8e2de2, #00e5ff);
+  background-size: 400% 400%;
+  animation: neon 5s linear infinite;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.btn span {
+  position: relative;
+  z-index: 1;
+  text-shadow:
+    0 0 6px #00e5ff,
+    0 0 12px #8e2de2;
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+.btn:nth-child(1){animation-delay:0.3s}
+.btn:nth-child(2){animation-delay:0.6s}
+.btn:nth-child(3){animation-delay:0.9s}
+
+/* Анимации */
+@keyframes neon {
+  0% {background-position:0% 50%}
+  50% {background-position:100% 50%}
+  100% {background-position:0% 50%}
+}
+
+@keyframes glow {
+  from {opacity:0.8}
+  to {opacity:1}
+}
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="matrix"></canvas>
+
+<div class="container">
+  <div class="avatar-border">
+    <img src="123456.jpe" alt="avatar">
+  </div>
+
+  <div class="title">vetrex scripts</div>
+
+  <div class="buttons">
+    <a class="btn" href="https://discord.gg/R3cggfDytU" target="_blank"><span>Discord</span></a>
+    <a class="btn" href="https://www.tiktok.com/@vetrex1337.dev?_r=1&_t=ZS-92Wa8W9wwYZ" target="_blank"><span>Tik Tok</span></a>
+    <a class="btn" href="https://www.youtube.com/@Vetrex_scripts" target="_blank"><span>YouTube</span></a>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById("matrix");
+const ctx = canvas.getContext("2d");
+
+function resize(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+resize();
+addEventListener("resize", resize);
+
+const symbols = ["1","0","\"","*","/","+","%"];
+const size = 14;
+let cols = Math.floor(innerWidth / size);
+let drops = Array(cols).fill(0);
+
+function draw(){
+  ctx.fillStyle = "rgba(0,0,0,0.15)";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  ctx.font = size + "px monospace";
+
+  for(let i=0;i<drops.length;i++){
+    const char = symbols[Math.random()*symbols.length|0];
+    const c = Math.random();
+    ctx.fillStyle = c<0.33 ? "#fff" : c<0.66 ? "#8e2de2" : "#00e5ff";
+    ctx.fillText(char, i*size, drops[i]*size);
+
+    if(drops[i]*size > canvas.height && Math.random()>0.97) drops[i]=0;
+    drops[i]++;
+  }
+}
+setInterval(draw,50);
+</script>
+
+</body>
+</html>
