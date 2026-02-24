@@ -1,0 +1,317 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local VirtualInput = game:GetService("VirtualInputManager")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+
+local VERTICAL_OFFSET = 6.5
+
+local teleportEnabled = false
+local autoClickEnabled = false
+local noclipEnabled = false
+local noclipLoaded = false
+
+local keyPressLoop = nil
+local mouseClickLoop = nil
+
+local keysToPress = {
+    Enum.KeyCode.E,
+    Enum.KeyCode.Y,
+    Enum.KeyCode.C,
+    Enum.KeyCode.R
+}
+
+-- Внешний ноуклип
+local function enableNoclip()
+    if not noclipLoaded then
+        noclipLoaded = true
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/FransizALWAYS/NoClip/refs/heads/main/V1"))()
+    end
+end
+
+local function disableNoclip()
+    -- Для этого скрипта нет штатного способа отключить ноуклип, но можно попробовать перезапустить персонажа:
+    if _G.NoclipLoop then
+        _G.NoclipLoop:Disconnect()
+        _G.NoclipLoop = nil
+    end
+    noclipLoaded = false
+end
+
+local function setButtonState(btn, state)
+    if state then
+        btn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+        btn.Text = btn.Name .. ": Включено"
+    else
+        btn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+        btn.Text = btn.Name .. ": Выключено"
+    end
+end
+
+local function startKeyPress()
+    if keyPressLoop then keyPressLoop:Disconnect() end
+    keyPressLoop = RunService.Heartbeat:Connect(function()
+        if not autoClickEnabled then return end
+        for _, key in ipairs(keysToPress) do
+            VirtualInput:SendKeyEvent(true, key, false, nil)
+            task.wait(0.05)
+            VirtualInput:SendKeyEvent(false, key, false, nil)
+            task.wait(0.05)
+        end
+    end)
+end
+
+local function stopKeyPress()
+    if keyPressLoop then
+        keyPressLoop:Disconnect()
+        keyPressLoop = nil
+    end
+end
+
+local function startMouseClick()
+    if mouseClickLoop then mouseClickLoop:Disconnect() end
+    mouseClickLoop = RunService.Heartbeat:Connect(function()
+        if not autoClickEnabled then return end
+        VirtualInput:SendMouseButtonEvent(0, 0, 0, true, nil, 0)
+        task.wait(0.05)
+        VirtualInput:SendMouseButtonEvent(0, 0, 0, false, nil, 0)
+        task.wait(0.05)
+    end)
+end
+
+local function stopMouseClick()
+    if mouseClickLoop then
+        mouseClickLoop:Disconnect()
+        mouseClickLoop = nil
+    end
+end
+
+-- GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AutoFarmGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 360, 0, 400)
+frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+frame.AnchorPoint = Vector2.new(0.5, 0.5)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.BackgroundTransparency = 0.8
+frame.BorderSizePixel = 0
+frame.Visible = false
+frame.Parent = screenGui
+
+local frameUICorner = Instance.new("UICorner")
+frameUICorner.CornerRadius = UDim.new(0, 14)
+frameUICorner.Parent = frame
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 42)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "Auto Farm Menu"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 29
+title.Parent = frame
+
+local scrollFrame = Instance.new("ScrollingFrame")
+scrollFrame.Size = UDim2.new(1, -20, 1, -60)
+scrollFrame.Position = UDim2.new(0, 10, 0, 50)
+scrollFrame.BackgroundTransparency = 1
+scrollFrame.BorderSizePixel = 0
+scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+scrollFrame.ScrollBarThickness = 8
+scrollFrame.Parent = frame
+
+local uiListLayout = Instance.new("UIListLayout")
+uiListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+uiListLayout.Padding = UDim.new(0, 10)
+uiListLayout.Parent = scrollFrame
+
+local uiPadding = Instance.new("UIPadding")
+uiPadding.PaddingTop = UDim.new(0, 5)
+uiPadding.PaddingBottom = UDim.new(0, 5)
+uiPadding.PaddingLeft = UDim.new(0, 10)
+uiPadding.PaddingRight = UDim.new(0, 10)
+uiPadding.Parent = scrollFrame
+
+local function updateCanvasSize()
+    local contentSize = uiListLayout.AbsoluteContentSize
+    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, contentSize.Y + 10)
+end
+
+uiListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateCanvasSize)
+
+-- Кнопки
+local toggleButton = Instance.new("TextButton")
+toggleButton.Name = "Автофарм"
+toggleButton.Size = UDim2.new(1, 0, 0, 50)
+toggleButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+toggleButton.BackgroundTransparency = 0.8
+toggleButton.TextColor3 = Color3.new(1, 1, 1)
+toggleButton.Font = Enum.Font.GothamSemibold
+toggleButton.TextSize = 27
+toggleButton.Text = "Автофарм: Выключено"
+toggleButton.Parent = scrollFrame
+local toggleUICorner = Instance.new("UICorner")
+toggleUICorner.CornerRadius = UDim.new(0, 14)
+toggleUICorner.Parent = toggleButton
+
+local autoClickButton = Instance.new("TextButton")
+autoClickButton.Name = "Авто клик"
+autoClickButton.Size = UDim2.new(1, 0, 0, 50)
+autoClickButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+autoClickButton.BackgroundTransparency = 0.8
+autoClickButton.TextColor3 = Color3.new(1, 1, 1)
+autoClickButton.Font = Enum.Font.GothamSemibold
+autoClickButton.TextSize = 27
+autoClickButton.Text = "Авто клик: Выключено"
+autoClickButton.Parent = scrollFrame
+local autoClickUICorner = Instance.new("UICorner")
+autoClickUICorner.CornerRadius = UDim.new(0, 14)
+autoClickUICorner.Parent = autoClickButton
+
+local noclipButton = Instance.new("TextButton")
+noclipButton.Name = "Ноуклип"
+noclipButton.Size = UDim2.new(1, 0, 0, 50)
+noclipButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+noclipButton.BackgroundTransparency = 0.8
+noclipButton.TextColor3 = Color3.new(1, 1, 1)
+noclipButton.Font = Enum.Font.GothamSemibold
+noclipButton.TextSize = 27
+noclipButton.Text = "Ноуклип: Выключено"
+noclipButton.Parent = scrollFrame
+local noclipUICorner = Instance.new("UICorner")
+noclipUICorner.CornerRadius = UDim.new(0, 14)
+noclipUICorner.Parent = noclipButton
+
+-- Кнопка закрытия
+local closeCircle = Instance.new("TextButton")
+closeCircle.Size = UDim2.new(0, 36, 0, 36)
+closeCircle.Position = UDim2.new(1, -45, 0, 12)
+closeCircle.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+closeCircle.BackgroundTransparency = 0.8
+closeCircle.TextColor3 = Color3.new(1, 1, 1)
+closeCircle.Font = Enum.Font.GothamBold
+closeCircle.TextSize = 26
+closeCircle.Text = "X"
+closeCircle.AnchorPoint = Vector2.new(0, 0)
+closeCircle.Parent = frame
+closeCircle.AutoButtonColor = true
+closeCircle.ZIndex = 10
+local closeCircleUICorner = Instance.new("UICorner")
+closeCircleUICorner.CornerRadius = UDim.new(1, 0)
+closeCircleUICorner.Parent = closeCircle
+
+closeCircle.MouseButton1Click:Connect(function()
+    teleportEnabled = false
+    autoClickEnabled = false
+    noclipEnabled = false
+    disableNoclip()
+    stopKeyPress()
+    stopMouseClick()
+    screenGui:Destroy()
+    script:Destroy()
+end)
+
+-- Открытие/закрытие меню
+local openButton = Instance.new("TextButton")
+openButton.Size = UDim2.new(0, 168, 0, 42)
+openButton.Position = UDim2.new(0.5, 0, 0, 10)
+openButton.AnchorPoint = Vector2.new(0.5, 0)
+openButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+openButton.BackgroundTransparency = 0.8
+openButton.TextColor3 = Color3.new(1, 1, 1)
+openButton.Font = Enum.Font.GothamSemibold
+openButton.TextSize = 21
+openButton.Text = "Открыть меню"
+openButton.Parent = screenGui
+local openUICorner = Instance.new("UICorner")
+openUICorner.CornerRadius = UDim.new(0, 14)
+openUICorner.Parent = openButton
+
+openButton.MouseButton1Click:Connect(function()
+    frame.Visible = not frame.Visible
+    if frame.Visible then
+        openButton.Text = "Закрыть меню"
+        if autoClickEnabled then
+            autoClickEnabled = false
+            setButtonState(autoClickButton, false)
+            stopKeyPress()
+            stopMouseClick()
+        end
+    else
+        openButton.Text = "Открыть меню"
+    end
+end)
+
+-- Логика кнопок
+toggleButton.MouseButton1Click:Connect(function()
+    teleportEnabled = not teleportEnabled
+    setButtonState(toggleButton, teleportEnabled)
+    if teleportEnabled then
+        enableNoclip()
+        setButtonState(noclipButton, true)
+        noclipEnabled = true
+    else
+        -- автофарм выключен, ноуклип не трогаем
+    end
+end)
+
+autoClickButton.MouseButton1Click:Connect(function()
+    autoClickEnabled = not autoClickEnabled
+    setButtonState(autoClickButton, autoClickEnabled)
+    if autoClickEnabled then
+        startKeyPress()
+        startMouseClick()
+    else
+        stopKeyPress()
+        stopMouseClick()
+    end
+end)
+
+noclipButton.MouseButton1Click:Connect(function()
+    noclipEnabled = not noclipEnabled
+    setButtonState(noclipButton, noclipEnabled)
+    if noclipEnabled then
+        enableNoclip()
+    else
+        disableNoclip()
+    end
+end)
+
+-- Отключаем авто клик при прыжке и обновляем кнопку
+UserInputService.JumpRequest:Connect(function()
+    if autoClickEnabled then
+        autoClickEnabled = false
+        setButtonState(autoClickButton, false)
+        stopKeyPress()
+        stopMouseClick()
+    end
+end)
+
+local function getBanditBossHRP()
+    local ignore = workspace:FindFirstChild("Ignore")
+    if not ignore then return nil end
+    local playersFolder = ignore:FindFirstChild("Players")
+    if not playersFolder then return nil end
+    local boss = playersFolder:FindFirstChild("Bandit Boss Carlos")
+    if boss and boss:FindFirstChild("HumanoidRootPart") then
+        return boss.HumanoidRootPart
+    end
+    return nil
+end
+
+RunService.RenderStepped:Connect(function()
+    if teleportEnabled then
+        local bossHRP = getBanditBossHRP()
+        local character = player.Character
+        if bossHRP and character and character:FindFirstChild("HumanoidRootPart") then
+            local hrp = character.HumanoidRootPart
+            local targetPos = bossHRP.Position - Vector3.new(0, VERTICAL_OFFSET, 0)
+            hrp.CFrame = CFrame.new(targetPos, bossHRP.Position)
+        end
+    end
+end)
